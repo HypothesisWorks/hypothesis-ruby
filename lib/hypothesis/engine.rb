@@ -29,7 +29,7 @@ module Hypothesis
           @core_engine.finish_invalid(core_id)
         rescue DataOverflow
           @core_engine.finish_overflow(core_id)
-        rescue StandardError
+        rescue Exception
           raise if is_find
           @core_engine.finish_interesting(core_id)
         end
@@ -40,19 +40,46 @@ module Hypothesis
         return
       end
 
-      @current_source = Source.new(@core_engine, core_id, record_draws: is_find)
-      yield @current_source
+      if is_find
+        @current_source = Source.new(@core_engine, core_id, record_draws: true)
+        yield @current_source
+      else
+        @current_source = Source.new(@core_engine, core_id, print_draws: true)
+
+        begin
+          yield @current_source
+        rescue Exception => e
+          str_value = e.to_s
+
+          class <<e
+            attr_accessor :hypothesis_data
+
+            def to_s
+              source, str_value = hypothesis_data
+              (source.print_log.each_with_index.map do |(name, s), i|
+                name = "##{i + 1}" if name.nil?
+                "Given #{name}: #{s}"
+              end.to_a + ['', str_value]).join("\n")
+            end
+          end
+          e.hypothesis_data = [@current_source, str_value]
+          raise e
+        end
+      end
     end
   end
 
   class Source
-    attr_reader :draws
+    attr_reader :draws, :print_log, :print_draws
 
-    def initialize(core_engine, core_id, record_draws: false)
+    def initialize(
+      core_engine, core_id, print_draws: false, record_draws: false
+    )
       @core_engine = core_engine
       @core_id = core_id
 
       @draws = [] if record_draws
+      @print_log = [] if print_draws
     end
 
     def bits(n)
@@ -61,10 +88,11 @@ module Hypothesis
       result
     end
 
-    def given(provider = nil, &block)
+    def given(provider = nil, name: nil, &block)
       provider ||= block
       result = provider.call(self)
       draws&.push(result)
+      print_log&.push([name, result.inspect])
       result
     end
 
