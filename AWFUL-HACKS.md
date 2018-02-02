@@ -84,7 +84,6 @@ Can be removed when one of:
   threading bugs (but fearless concurrency, David!) outweighs
   my desire to not use nightly.
 
-
 ### Monkey-patching Helix for our Build
 
 I was very very bored of Helix's build support [not actually failing
@@ -93,3 +92,30 @@ so I've monkey-patched their build system in our Rakefile in order
 to make it error properly in this case.
 
 Can be removed when: The linked issue is fixed.
+
+### Using Eigenclasses for Example Printing
+
+Right. So. I asked Sam (and he should know) how to print stuff in
+rspec. The only viable answer appears to be "Use exceptions and
+define their to\_s method".
+
+But I want to support arbitrary user exceptions. It would suck
+to make people to use an entirely different set of matchers within
+Hypothesis than outside of Hypothesis, and it would be annoying
+to change the exception type just because you were using Hypothesis:
+The general goal here is that Hypothesis should more or less
+be invisible in your test output except to the extent that it needs
+to tell you what it did.
+
+So, how to reconcile these two things?
+
+Well... The to\_s on the exception class will be called, but there's
+nothing to say it has to be the same implementation of it that you
+started with, right? And we've got the exception object sitting
+right there, with it's friendly little eigenclass that we can
+attach things to, right?
+
+Anyway, that's how we print examples now. Sorry.
+
+Can be removed when: Dear Rspec developers. I owe you a proposed
+"details" API suggestion.
