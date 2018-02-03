@@ -49,20 +49,27 @@ module Hypothesis
         begin
           yield @current_source
         rescue Exception => e
-          str_value = e.to_s
+          givens = @current_source.print_log
+          given_str = givens.each_with_index.map do |(name, s), i|
+            name = "##{i + 1}" if name.nil?
+            "Given #{name}: #{s}"
+          end.to_a
+
+          original_to_s = e.to_s
+          original_inspect = e.inspect
 
           class <<e
             attr_accessor :hypothesis_data
 
             def to_s
-              source, str_value = hypothesis_data
-              (source.print_log.each_with_index.map do |(name, s), i|
-                name = "##{i + 1}" if name.nil?
-                "Given #{name}: #{s}"
-              end.to_a + ['', str_value]).join("\n")
+              ['', hypothesis_data[0], '', hypothesis_data[1]].join("\n")
+            end
+
+            def inspect
+              ['', hypothesis_data[0], '', hypothesis_data[2]].join("\n")
             end
           end
-          e.hypothesis_data = [@current_source, str_value]
+          e.hypothesis_data = [given_str, original_to_s, original_inspect]
           raise e
         end
       end
