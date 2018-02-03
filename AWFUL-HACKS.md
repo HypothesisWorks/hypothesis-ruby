@@ -97,7 +97,8 @@ Can be removed when: The linked issue is fixed.
 
 Right. So. I asked Sam (and he should know) how to print stuff in
 rspec. The only viable answer appears to be "Use exceptions and
-define their to\_s method".
+define their `to_s` method" (Though FUN FACT, minitest and RSpec
+disagree on whether to use `inspect` or `to_s`.
 
 But I want to support arbitrary user exceptions. It would suck
 to make people to use an entirely different set of matchers within
@@ -117,5 +118,10 @@ attach things to, right?
 
 Anyway, that's how we print examples now. Sorry.
 
-Can be removed when: Dear Rspec developers. I owe you a proposed
-"details" API suggestion.
+Can be removed when: We might be stuck with this one unless we can
+get a "details" API upstream to both RSPec and minitest, and any
+other thing it might be reasonable to support.
+
+This is highly aesthetically displeasing but actually not too bad
+in effect. The damage is pretty localised, and the results seem
+to be good.
