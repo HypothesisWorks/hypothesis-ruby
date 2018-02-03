@@ -28,4 +28,20 @@ RSpec.describe 'printing examples' do
       end
     end.to raise_exception(/Given fred:/)
   end
+
+  it 'does not mangle names if you reuse exceptions' do
+    shared = Exception.new('Stuff')
+    3.times do
+      expect do
+        hypothesis do
+          given integers
+          raise shared
+        end
+      end.to raise_exception do |ex|
+        expect(ex).to equal(shared)
+        expect(ex.to_s.scan(/Given/).count).to eq(1)
+        expect(ex.to_s.scan(/Stuff/).count).to eq(1)
+      end
+    end
+  end
 end

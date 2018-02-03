@@ -55,21 +55,25 @@ module Hypothesis
             "Given #{name}: #{s}"
           end.to_a
 
-          original_to_s = e.to_s
-          original_inspect = e.inspect
+          if e.respond_to? :hypothesis_data
+            e.hypothesis_data[0] = given_str
+          else
+            original_to_s = e.to_s
+            original_inspect = e.inspect
 
-          class <<e
-            attr_accessor :hypothesis_data
+            class <<e
+              attr_accessor :hypothesis_data
 
-            def to_s
-              ['', hypothesis_data[0], '', hypothesis_data[1]].join("\n")
+              def to_s
+                ['', hypothesis_data[0], '', hypothesis_data[1]].join("\n")
+              end
+
+              def inspect
+                ['', hypothesis_data[0], '', hypothesis_data[2]].join("\n")
+              end
             end
-
-            def inspect
-              ['', hypothesis_data[0], '', hypothesis_data[2]].join("\n")
-            end
+            e.hypothesis_data = [given_str, original_to_s, original_inspect]
           end
-          e.hypothesis_data = [given_str, original_to_s, original_inspect]
           raise e
         end
       end
